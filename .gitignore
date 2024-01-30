@@ -1,0 +1,9 @@
+.terraform*
+
+*.json
+
+terraform*
+
+.env
+
+__pycache__/*
