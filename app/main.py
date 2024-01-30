@@ -56,7 +56,7 @@ def main(organization: str, github_token: str):
 
 
 if __name__ == "__main__":
-    organization_name = os.environ.get("organization", "Scytale-exercise")
-    github_access_token = os.environ.get("github_access_token")
+    organization_name = os.environ.get("ORGANIZATION", "Scytale-exercise")
+    github_access_token = os.environ.get("GITHUB_ACCESS_TOKEN")
     main(organization_name, github_access_token)
     transformation_with_spark(organization_name, "result")

@@ -19,7 +19,7 @@ services:
       - spark_volume:/opt/bitnami/spark
       - shared_workspace:/opt/workspace
 
-  spark-wroker:
+  spark-worker:
     #image: bitnami/spark:3.5
     build:
       context: .
@@ -35,6 +35,8 @@ services:
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
+      - ORGANIZATION=${ORGANIZATION}
+      - GITHUB_ACCESS_TOKEN=${GITHUB_ACCESS_TOKEN}
     command: /opt/bitnami/spark/bin/spark-submit /app/main.py
     # command: uvicorn main:app --host 0.0.0.0 --port 8080
     ports:
@@ -43,18 +45,18 @@ services:
     depends_on:
       - spark-master
     volumes:
-      - ./:/app/
+      - ./app:/app/
       - shared_workspace:/opt/workspace
 
-  jupyterlab:
-    image: jupyter/pyspark-notebook
-    container_name: jupyterlab
-    ports:
-      - "82:8888"
-    volumes:
-      - shared_workspace:/opt/workspace
-      - ./notebooks:/opt/workspace/notebooks
-      - spark_volume:/opt/spark
+  # jupyterlab:
+  #   image: jupyter/pyspark-notebook
+  #   container_name: jupyterlab
+  #   ports:
+  #     - "82:8888"
+  #   volumes:
+  #     - shared_workspace:/opt/workspace
+  #     - ./notebooks:/opt/workspace/notebooks
+  #     - spark_volume:/opt/spark
 
 volumes:
     spark_volume:
