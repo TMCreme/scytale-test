@@ -64,6 +64,13 @@ module "main_sg" {
       protocol = "tcp"
       description = "Allow all to backend"
       cidr_blocks = "0.0.0.0/0"
+    },
+    {
+      from_port = 8082
+      to_port = 8082
+      protocol = "tcp"
+      description = "Allow all to jupyter"
+      cidr_blocks = "0.0.0.0/0"
     }
   ]
 }
@@ -266,6 +273,12 @@ module "ec2_instance" {
   associate_public_ip_address = true
   # create_iam_instance_profile = true
   iam_role_description        = "IAM role for EC2 instance"
+  root_block_device = [
+    {
+      device_name = "/dev/root"
+      volume_size = 40
+    }
+  ]
 
   tags = {
     Terraform   = "true"
