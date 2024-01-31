@@ -1,9 +1,10 @@
 """
 Main module for data processing
 """
-import requests
-import json
 import os
+import time
+import json
+import requests
 
 from transform import transformation_with_spark
 
@@ -12,17 +13,70 @@ def get_all_repositories(org_name: str, access_token: str):
     """Retrieve all repositories given the organization name"""
     url = f"https://api.github.com/orgs/{org_name}/repos"
     headers = {"Authorization": f"Bearer {access_token}"}
-    response = requests.get(url, headers=headers)
-    repositories = response.json()
+    repositories = []
+
+    while url:
+        response = requests.get(url, headers=headers)
+        repositories.extend(response.json())
+
+        # Check for rate limit exceeded
+        if response.status_code == 403 and 'X-RateLimit-Remaining' in response.headers:
+            remaining_limit = int(response.headers['X-RateLimit-Remaining'])
+            if remaining_limit == 0:
+                reset_time = int(response.headers['X-RateLimit-Reset'])
+                wait_time = reset_time - int(time.time()) + 5
+                print(f"Rate limit exceeded. Waiting for {wait_time} seconds.")
+                time.sleep(wait_time)
+                continue
+
+        # Check for pagination
+        links = response.headers.get('Link')
+        if links:
+            next_url = get_next_page(links)
+            url = next_url
+        else:
+            url = None
+
     return repositories
+
+
+def get_next_page(links):
+    """Extract the next page URL from the Link header"""
+    link_items = links.split(',')
+    for link_item in link_items:
+        link, rel = link_item.split(';')
+        if 'rel="next"' in rel:
+            return link.strip('<>')
 
 
 def get_all_pull_requests(repo_full_name: str, access_token: str):
     """Retrieve all pull requests given the repository's name"""
     url = f"https://api.github.com/repos/{repo_full_name}/pulls?state=all"
     headers = {"Authorization": f"Bearer {access_token}"}
-    response = requests.get(url, headers=headers)
-    pull_requests = response.json()
+    pull_requests = []
+
+    while url:
+        response = requests.get(url, headers=headers)
+        pull_requests.extend(response.json())
+
+        # Check for rate limit exceeded
+        if response.status_code == 403 and 'X-RateLimit-Remaining' in response.headers:
+            remaining_limit = int(response.headers['X-RateLimit-Remaining'])
+            if remaining_limit == 0:
+                reset_time = int(response.headers['X-RateLimit-Reset'])
+                wait_time = reset_time - int(time.time()) + 5
+                print(f"Rate limit exceeded. Waiting for {wait_time} seconds.")
+                time.sleep(wait_time)
+                continue
+
+        # Check for pagination
+        links = response.headers.get('Link')
+        if links:
+            next_url = get_next_page(links)
+            url = next_url
+        else:
+            url = None
+
     return pull_requests
 
 
